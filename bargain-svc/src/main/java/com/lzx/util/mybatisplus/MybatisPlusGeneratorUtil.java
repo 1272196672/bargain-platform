@@ -1,4 +1,4 @@
-package com.ptone.common.util.mybatisplus;
+package com.lzx.util.mybatisplus;
 
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
@@ -15,11 +15,12 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
- * @author yuanhk
- * @version 1.0.0
- * @Description mybatisPlus代码生成
- * @createTime 2021年11月23日 10:32
+ * mybatis +发电机跑龙套
+ *
+ * @author Bobby.zx.lin
+ * @date 2023/02/22
  */
 @Getter
 @Setter
@@ -179,6 +180,8 @@ public class MybatisPlusGeneratorUtil {
         strategy.setInclude(tableNames);
         // 驼峰转连字符
         strategy.setControllerMappingHyphenStyle(true);
+        // 去前缀
+        strategy.setFieldPrefix("t_");
         return strategy;
     }
 
