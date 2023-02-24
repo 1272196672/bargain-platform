@@ -1,6 +1,5 @@
 package com.lzx.controller;
 
-import com.baomidou.mybatisplus.extension.api.R;
 import com.google.gson.Gson;
 import com.lzx.service.WxPayService;
 import com.lzx.util.HttpUtils;
