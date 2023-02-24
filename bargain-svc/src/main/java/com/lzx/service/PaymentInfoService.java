@@ -1,7 +1,7 @@
 package com.lzx.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.ptone.park.modules.share.entity.ShareParkPaymentInfo;
+import com.lzx.entity.PaymentInfo;
 
 import java.util.HashMap;
 
@@ -13,7 +13,7 @@ import java.util.HashMap;
  * @author 林子翔
  * @since 2022-09-28
  */
-public interface PaymentInfoService extends IService<ShareParkPaymentInfo> {
+public interface PaymentInfoService extends IService<PaymentInfo> {
 
     /**
      * 记录支付日志

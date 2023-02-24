@@ -35,3 +35,24 @@ spring:
     port: 5672
     username: admin
     password: admin
+#swgger文档增强配置
+knife4j:
+  # 是否开启加强模式 true开启  false关闭
+  enable: true
+  setting:
+    # 是否开启调试功能  true开启  false关闭
+    enableDebug: true
+  basic:
+    # 是否开启认证功能  true开启  false关闭
+    enable: false
+    username: test
+    password: 123456
+  swagger:
+    #扫描包
+    base-package: com.lzx
+    #文档标题
+    title: API接口文档
+    #文档描述
+    description: bargain-platform接口文档
+    #文档版本
+    version: v1.0.0

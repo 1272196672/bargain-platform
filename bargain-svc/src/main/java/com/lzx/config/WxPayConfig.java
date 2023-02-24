@@ -20,7 +20,6 @@ import org.springframework.context.annotation.PropertySource;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -44,12 +43,12 @@ public class WxPayConfig {
     private String domain;
     private String notifyDomain;
 
-    public String getPrivateKeyPath(){
+    public String getPrivateKeyPath() {
         try {
             return new String(privateKeyPath.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("错误！获取商户密钥时转String出错，请检查！【"+e.getMessage()+"】");
+            log.error("错误！获取商户密钥时转String出错，请检查！【" + e.getMessage() + "】");
             return null;
         }
     }

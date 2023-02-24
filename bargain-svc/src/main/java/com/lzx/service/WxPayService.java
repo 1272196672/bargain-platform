@@ -11,24 +11,12 @@ public interface WxPayService {
     /**
      * nativePay
      *
-     * @param orderOriginNum orderOriginNum
+     * @param orderNum orderNum
      * @return {@link HashMap }<{@link String }, {@link Object }> 返回二维码与订单号
      * @author 林子翔
      * @since 2022/09/29
      */
-    HashMap<String, Object> nativePay(String orderOriginNum) throws Exception;
-
-    /**
-     * h5Pay
-     *
-     * @param orderOriginNum orderOriginNum
-     * @param ip             手机ip地址
-     * @param phoneTye       手机类型
-     * @return {@link HashMap }<{@link String }, {@link Object }>
-     * @author 林子翔
-     * @since 2022/10/08
-     */
-    HashMap<String, Object> h5Pay(String orderOriginNum, String ip, String phoneTye) throws Exception;
+    HashMap<String, Object> nativePay(String orderNum) throws Exception;
 
     /**
      * 处理订单
@@ -42,21 +30,21 @@ public interface WxPayService {
     /**
      * 取消订单
      *
-     * @param orderOriginNum 订单号
+     * @param orderNum 订单号
      * @author 林子翔
      * @since 2022/09/29
      */
-    void cancelOrder(String orderOriginNum) throws Exception;
+    void cancelOrder(String orderNum) throws Exception;
 
     /**
      * 调用wx客户端查单接口
      *
-     * @param orderOriginNum 订单号
+     * @param orderNum 订单号
      * @return {@link HashMap }<{@link String }, {@link String }>
      * @author 林子翔
      * @since 2022/10/09
      */
-    HashMap<String, String> queryOrder(String orderOriginNum) throws Exception;
+    HashMap<String, String> queryOrder(String orderNum) throws Exception;
 
     /**
      * 根据订单号查询wx支付查单接口，核实订单状态
@@ -72,12 +60,12 @@ public interface WxPayService {
     /**
      * 申请退款
      *
-     * @param orderOriginNum 订单编号
+     * @param orderNum 订单编号
      * @param reason         原因
      * @author 林子翔
      * @since 2022/09/30
      */
-    void refund(String orderOriginNum, String reason) throws IOException;
+    void refund(String orderNum, String reason) throws IOException;
 
     /**
      * 查询退款单

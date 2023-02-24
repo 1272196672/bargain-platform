@@ -1,7 +1,7 @@
 package com.lzx.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.ptone.park.modules.share.entity.ShareParkRefundInfo;
+import com.lzx.entity.PaymentInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -13,6 +13,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2022-09-28
  */
 @Mapper
-public interface ShareParkRefundInfoMapper extends BaseMapper<ShareParkRefundInfo> {
+public interface PaymentInfoMapper extends BaseMapper<PaymentInfo> {
 
 }

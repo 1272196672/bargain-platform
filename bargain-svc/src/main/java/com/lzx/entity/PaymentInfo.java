@@ -23,42 +23,36 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("share_park_refund_info")
-@ApiModel(value = "RefundInfo对象", description = "")
-public class ShareParkRefundInfo extends Model<ShareParkRefundInfo> {
+@TableName("payment_info")
+@ApiModel(value="PaymentInfo对象", description="")
+public class PaymentInfo extends Model<PaymentInfo> {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "款单id")
+    @ApiModelProperty(value = "支付记录id")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty(value = "商户订单编号")
     private String orderNo;
 
-    @ApiModelProperty(value = "商户退款单编号")
-    private String refundNo;
+    @ApiModelProperty(value = "支付系统交易编号")
+    private String transactionId;
 
-    @ApiModelProperty(value = "支付系统退款单号")
-    private String refundId;
+    @ApiModelProperty(value = "支付类型")
+    private String paymentType;
 
-    @ApiModelProperty(value = "原订单金额(分)")
-    private BigDecimal totalFee;
+    @ApiModelProperty(value = "交易类型")
+    private String tradeType;
 
-    @ApiModelProperty(value = "退款金额(分)")
-    private BigDecimal refund;
+    @ApiModelProperty(value = "交易状态")
+    private String tradeState;
 
-    @ApiModelProperty(value = "退款原因")
-    private String reason;
+    @ApiModelProperty(value = "支付金额(分)")
+    private BigDecimal payerTotal;
 
-    @ApiModelProperty(value = "退款状态")
-    private String refundStatus;
-
-    @ApiModelProperty(value = "申请退款返回参数")
-    private String contentReturn;
-
-    @ApiModelProperty(value = "退款结果通知参数")
-    private String contentNotify;
+    @ApiModelProperty(value = "通知参数")
+    private String content;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createTime;

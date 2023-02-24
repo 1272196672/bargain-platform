@@ -1,6 +1,7 @@
 package com.lzx.service;
 
-import com.ptone.park.modules.share.enums.OrderStatus;
+
+import com.lzx.enums.OrderStatus;
 
 import java.util.List;
 
@@ -13,12 +14,12 @@ public interface PayOrderService {
     /**
      * 创建支付订单映射，获取订单编号映射
      *
-     * @param orderOriginNum 原始订单编号
+     * @param orderNum 原始订单编号
      * @return {@link String }
      * @author 林子翔
      * @since 2022/10/09
      */
-    String getAndCreateOrderNo(String orderOriginNum);
+    String getAndCreateOrderNo(String orderNum);
 
     /**
      * 获取原始订单编号
@@ -28,17 +29,27 @@ public interface PayOrderService {
      * @author 林子翔
      * @since 2022/10/09
      */
-    String getOrderOriginNum(String orderNo);
+    String getOrderNum(String orderNo);
 
     /**
      * 获取未支付的订单映射
      *
-     * @param orderOriginNum orderOriginNum
+     * @param orderNum orderNum
      * @return {@link String }
      * @author 林子翔
      * @since 2022/10/09
      */
-    List<String> getNoPayOrderNosByOriginNum(String orderOriginNum);
+    List<String> getNoPayOrderNosByOrderNum(String orderNum);
+
+    /**
+     * 订单编号
+     *
+     * @param orderNum orderNum
+     * @return {@link List }<{@link String }>
+     * @author 林子翔
+     * @since 2022/10/09
+     */
+    List<String> getAllOrderNoByOrderNum(String orderNum);
 
     /**
      * 更新订单状态
@@ -49,22 +60,13 @@ public interface PayOrderService {
      * @since 2022/10/09
      */
     void updateStatusByOrderNo(String orderNo, OrderStatus orderStatus);
+    
 
     /**
-     * 获取所有原始订单的相关订单编号映射
-     *
-     * @param orderOriginNum orderOriginNum
-     * @return {@link List }<{@link String }>
-     * @author 林子翔
-     * @since 2022/10/09
-     */
-    List<String> getAllOrderNoByOriginNum(String orderOriginNum);
-
-    /**
-     * @param orderOriginNum orderOriginNum
+     * @param orderNum orderNum
      * @return {@link String }
      * @author 林子翔
      * @since 2022/10/09
      */
-    String getPayOrderNoByOriginNum(String orderOriginNum);
+    String getPayOrderNoByOrderNum(String orderNum);
 }

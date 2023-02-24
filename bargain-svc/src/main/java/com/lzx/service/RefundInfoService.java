@@ -1,6 +1,7 @@
 package com.lzx.service;
 
-import com.ptone.park.modules.share.entity.ShareParkRefundInfo;
+
+import com.lzx.entity.RefundInfo;
 
 /**
  * <p>
@@ -17,11 +18,11 @@ public interface RefundInfoService {
      *
      * @param orderNo 订单号
      * @param reason  原因
-     * @return {@link ShareParkRefundInfo }
+     * @return {@link RefundInfo }
      * @author 林子翔
      * @since 2022/09/30
      */
-    ShareParkRefundInfo createRefundByOrderNo(String orderNo, String reason);
+    RefundInfo createRefundByOrderNo(String orderNo, String reason);
 
     /**
      * 更新退款单

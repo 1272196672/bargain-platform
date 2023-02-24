@@ -3,6 +3,9 @@ package com.lzx.controller;
 import com.baomidou.mybatisplus.extension.api.R;
 import com.google.gson.Gson;
 import com.lzx.service.WxPayService;
+import com.lzx.util.HttpUtils;
+import com.lzx.util.WechatPay2Validator4Request;
+import com.lzx.vo.Result;
 import com.wechat.pay.contrib.apache.httpclient.auth.Verifier;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,58 +38,38 @@ public class WxPayController {
     private Verifier verifier;
 
     /**
+     * 本地支付
      * 调用native统一下单api，生产支付二维码
      *
-     * @param orderOriginNum 原订单编号
-     * @return {@link R }
+     * @param orderNum 订单编号
+     * @return {@link Result}
+     * @throws Exception 异常
      * @author 林子翔
      * @since 2022/09/29
      */
-    @Cross
-    @PostMapping("/native/{orderOriginNum}")
+    @PostMapping("/native/{orderNum}")
     @ApiOperation("调用native统一下单api，生产支付二维码")
-    public Result nativePay(@PathVariable String orderOriginNum) throws Exception {
+    public Result nativePay(@PathVariable String orderNum) throws Exception {
         log.info("发起支付请求");
 //        防止用户操作失误导致意外发生，在支付时首先将此订单关联的所有未支付订单给取消
-        this.cancel(orderOriginNum);
+        this.cancel(orderNum);
 //        返回二维码与订单号
-        return Result.success(wxPayService.nativePay(orderOriginNum));
+        return Result.success(wxPayService.nativePay(orderNum));
 //        return R.ok().setData(wxPayService.nativePay(productId));
     }
 
     /**
-     * 调用h5统一下单api，生产支付二维码
-     *
-     * @param orderOriginNum 原订单编号
-     * @param ip             手机ip地址
-     * @param phoneTye       手机类型
-     * @return {@link Result }
-     * @author 林子翔
-     * @since 2022/10/08
-     */
-    @Cross
-    @PostMapping("/h5/{orderOriginNum}/{ip}/{phoneTye}")
-    @ApiOperation("调用h5统一下单api，生产支付二维码")
-    public Result h5Pay(@PathVariable String orderOriginNum, @PathVariable String ip, @PathVariable String phoneTye) throws Exception {
-        log.info("发起支付请求");
-//        防止用户操作失误导致意外发生，在支付时首先将此订单关联的所有未支付订单给取消
-        this.cancel(orderOriginNum);
-//        返回二维码与订单号
-        return Result.success(wxPayService.h5Pay(orderOriginNum, ip, phoneTye));
-    }
-
-    /**
+     * 本地通知
      * wx返回通知，我们处理
      *
      * @param request  request
      * @param response response
-     * @return {@link String }
+     * @return {@link String}
      * @author 林子翔
      * @since 2022/09/29
      */
     @ApiOperation("native支付结果通知")
     @PostMapping("/native/notify")
-    @Cross
     public String nativeNotify(HttpServletRequest request, HttpServletResponse response) {
 //        创建应答对象
         HashMap<String, String> respMap = new HashMap<>();
@@ -125,98 +108,68 @@ public class WxPayController {
     }
 
     /**
-     * h5支付结果通知
+     * 取消
      *
-     * @param request  request
-     * @param response response
-     * @return {@link String }
-     * @author 林子翔
-     * @since 2022/09/30
+     * @param orderNum 订单num
+     * @return {@link Result}
+     * @throws Exception 异常
      */
-    @Cross
-    @ApiOperation("h5支付结果通知")
-    @PostMapping("/h5/notify")
-    public String h5Notify(HttpServletRequest request, HttpServletResponse response) {
-//        创建应答对象
-        HashMap<String, String> respMap = new HashMap<>();
-        try {
-//        处理通知参数
-            String body = HttpUtils.readData(request);
-            HashMap<String, Object> bodyMap = new Gson().fromJson(body, HashMap.class);
-            String requestId = (String) bodyMap.get("id");
-            log.info("支付通知的id：{}", requestId);
-            log.info("支付通知的完整数据：{}", body);
-//        验签
-            WechatPay2Validator4Request wechatPay2Validator4Request = new WechatPay2Validator4Request(verifier, requestId, body);
-            if (!wechatPay2Validator4Request.validate(request)) {
-                log.error("通知验签失败");
-                //        失败应答
-                response.setStatus(500);
-                respMap.put("code", "FAIL");
-                respMap.put("message", "通知验签失败");
-            }
-            log.info("通知验签成功");
-
-//        处理订单
-            wxPayService.processOrder(bodyMap);
-
-//        成功应答
-            response.setStatus(200);
-            respMap.put("code", "SUCCESS");
-            respMap.put("message", "成功应答");
-        } catch (Exception e) {
-//        失败应答
-            response.setStatus(500);
-            respMap.put("code", "FAIL");
-            respMap.put("message", "失败应答");
-        }
-        return new Gson().toJson(respMap);
-    }
-
-    @PostMapping("/cancel/{orderOriginNum}")
+    @PostMapping("/cancel/{orderNum}")
     @ApiOperation("取消订单")
-    @Cross
-    public Result cancel(@PathVariable String orderOriginNum) throws Exception {
+    public Result cancel(@PathVariable String orderNum) throws Exception {
         log.info("取消订单");
 
-        wxPayService.cancelOrder(orderOriginNum);
-        return Result.success("订单已取消", orderOriginNum);
+        wxPayService.cancelOrder(orderNum);
+        return Result.success("订单已取消", orderNum);
 //        return R.ok().setMsg("订单已取消");
     }
 
-    @GetMapping("/query/{orderOriginNum}")
+    /**
+     * 查询订单
+     *
+     * @param orderNum 订单num
+     * @return {@link Result}
+     * @throws Exception 异常
+     */
+    @GetMapping("/query/{orderNum}")
     @ApiOperation("向wx端查询订单")
-    @Cross
-    public Result queryOrder(@PathVariable String orderOriginNum) throws Exception {
+    public Result queryOrder(@PathVariable String orderNum) throws Exception {
         log.info("向wx端查询订单");
 
-        HashMap<String, String> result = wxPayService.queryOrder(orderOriginNum);
+        HashMap<String, String> result = wxPayService.queryOrder(orderNum);
         return Result.success("查询成功", result);
 //        return R.ok().setMsg("查询成功").data("result", result);
     }
 
     /**
+     * 退款
      * 申请退款
      *
-     * @param orderOriginNum 订单号
-     * @param reason  原因
-     * @return {@link R }
+     * @param orderNum 订单号
+     * @param reason   原因
+     * @return {@link Result}
+     * @throws Exception 异常
      * @author 林子翔
      * @since 2022/09/30
      */
-    @PostMapping("/refunds/{orderOriginNum}/{reason}")
+    @PostMapping("/refunds/{orderNum}/{reason}")
     @ApiOperation("申请退款")
-    @Cross
-    public Result refunds(@PathVariable String orderOriginNum, @PathVariable String reason) throws Exception {
+    public Result refunds(@PathVariable String orderNum, @PathVariable String reason) throws Exception {
         log.info("申请退款");
-        wxPayService.refund(orderOriginNum, reason);
-        return Result.success(orderOriginNum);
+        wxPayService.refund(orderNum, reason);
+        return Result.success(orderNum);
 //        return R.ok();
     }
 
+    /**
+     * 查询退款
+     *
+     * @param refundNo 退款不
+     * @return {@link Result}
+     * @throws Exception 异常
+     */
     @ApiOperation("向wx端查询退款")
     @GetMapping("/query-refund/{refundNo}")
-    @Cross
     public Result queryRefund(@PathVariable String refundNo) throws Exception {
 
         log.info("查询退款");
@@ -226,9 +179,15 @@ public class WxPayController {
 //        return R.ok().setMsg("查询成功").data("result", result);
     }
 
+    /**
+     * 退款通知
+     *
+     * @param request  请求
+     * @param response 响应
+     * @return {@link String}
+     */
     @ApiOperation("退款结果通知")
     @PostMapping("/refunds/notify")
-    @Cross
     public String refundsNotify(HttpServletRequest request, HttpServletResponse response) {
 
         log.info("退款通知执行");

@@ -18,9 +18,9 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("share_park_pay_order")
+@TableName("pay_order")
 @ApiModel(value = "payOrder对象", description = "")
-public class ShareParkPayOrder extends Model<ShareParkPayOrder> {
+public class PayOrder extends Model<PayOrder> {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,9 +29,6 @@ public class ShareParkPayOrder extends Model<ShareParkPayOrder> {
     private Long id;
 
     @ApiModelProperty(value = "订单编号")
-    private String orderOriginNum;
-
-    @ApiModelProperty(value = "映射订单编号")
     private String orderNum;
 
     @ApiModelProperty(value = "0.未支付,1.已支付,2.超时已关闭,3.用户已取消,4.退款中,5.退款成功,6.退款异常")
