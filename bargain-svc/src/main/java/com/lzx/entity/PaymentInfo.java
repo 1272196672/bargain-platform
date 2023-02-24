@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @TableName("payment_info")
-@ApiModel(value="PaymentInfo对象", description="")
+@ApiModel(value = "PaymentInfo对象", description = "")
 public class PaymentInfo extends Model<PaymentInfo> {
 
     private static final long serialVersionUID = 1L;

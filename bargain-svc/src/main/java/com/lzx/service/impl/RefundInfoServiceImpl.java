@@ -8,11 +8,9 @@ import com.lzx.entity.RefundInfo;
 import com.lzx.mapper.OrderMapper;
 import com.lzx.mapper.PaymentInfoMapper;
 import com.lzx.mapper.RefundInfoMapper;
-import com.lzx.service.PayOrderService;
 import com.lzx.service.RefundInfoService;
 import com.lzx.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,24 +32,19 @@ public class RefundInfoServiceImpl implements RefundInfoService {
     @Resource
     private OrderMapper orderMapper;
 
-    @Autowired
+    @Resource
     private PaymentInfoMapper paymentInfoMapper;
 
-    @Autowired
+    @Resource
     private RefundInfoMapper refundInfoMapper;
-
-    @Autowired
-    private PayOrderService payOrderService;
 
     @Override
     public RefundInfo createRefundByOrderNo(String orderNo, String reason) {
 
 //        根据订单号获取订单消息
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
-//        获取原订单编号
-        String orderNum = payOrderService.getOrderNum(orderNo);
 
-        queryWrapper.eq("order_num", orderNum);
+        queryWrapper.eq("order_num", orderNo);
         Order order = orderMapper.selectOne(queryWrapper);
 
 //        从paymentInfo中获取用户支付金额

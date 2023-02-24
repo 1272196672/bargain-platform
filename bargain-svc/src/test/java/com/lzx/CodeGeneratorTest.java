@@ -6,16 +6,17 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import javax.annotation.Resource;
 
 @SpringBootTest
 public class CodeGeneratorTest {
     // Mysql
     @Test
     public void test() {
-        String[] tableNames = {"t_user"};
+        String[] tableNames = {"product"};
         MybatisPlusGeneratorUtil generator = new MybatisPlusGeneratorUtil(
                 "Bobby.zx.lin",
                 "com.lzx",
@@ -27,7 +28,7 @@ public class CodeGeneratorTest {
     }
 
     // redis
-    @Autowired
+    @Resource
     private RedisTemplate<String, Object> redisTemplate;
 
     @Test
@@ -38,7 +39,7 @@ public class CodeGeneratorTest {
     }
 
     //rabbitmq
-    @Autowired
+    @Resource
     private RabbitTemplate rabbitTemplate;
 
     @Test

@@ -1,5 +1,7 @@
 package com.lzx.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import io.swagger.annotations.ApiModel;
@@ -24,7 +26,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @TableName("order")
 @Accessors(chain = true)
-@ApiModel(value = "payOrder对象", description = "")
+@ApiModel(value = "Order对象", description = "")
 public class Order extends Model<Order> {
 
     private static final long serialVersionUID = 1L;
@@ -33,31 +35,8 @@ public class Order extends Model<Order> {
      * 主键
      */
     @ApiModelProperty(value = "主键")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
-
-    /**
-     * 订单状态:0.用户取消,1.已预约,2.进行中,3.已结束,4.系统关闭
-     */
-    @ApiModelProperty(value = "订单状态:0.用户取消,1.已预约,2.进行中,3.已结束,4.系统关闭")
-    private Integer orderStatus;
-
-    /**
-     * 支付状态:0.未支付,1.已支付
-     */
-    @ApiModelProperty(value = "支付状态:0.未支付,1.已支付")
-    private Integer orderPayStatus;
-
-    /**
-     * 订单超时时间
-     */
-    @ApiModelProperty(value = "订单超时时长(分钟)")
-    private Integer orderOutTime;
-
-    /**
-     * 订单创建的时间
-     */
-    @ApiModelProperty(value = "订单创建时间")
-    private LocalDateTime orderCreateTime;
 
     /**
      * 订单编号
@@ -65,17 +44,29 @@ public class Order extends Model<Order> {
     @ApiModelProperty(value = "订单编号")
     private String orderNum;
 
-    /**
-     * 订单支付时间
-     */
-    @ApiModelProperty(value = "订单支付时间")
-    private LocalDateTime orderPayTime;
+    @ApiModelProperty(value = "用户id")
+    private String userId;
+
+    @ApiModelProperty(value = "产品id")
+    private String productId;
+
+    @ApiModelProperty(value = "订单金额")
+    private BigDecimal realMoney;
+
+    @ApiModelProperty(value = "二维码地址")
+    private String codeUrl;
 
     /**
-     * 订单实收金额
+     * 订单状态:0.未支付,1.支付成功,2.超时已关闭,3.用户已取消,4.退款中,5.退款成功,6.退款异常
      */
-    @ApiModelProperty(value = "订单实收金额")
-    private BigDecimal orderRealMoney;
+    @ApiModelProperty(value = "订单状态:0.未支付,1.支付成功,2.超时已关闭,3.用户已取消,4.退款中,5.退款成功,6.退款异常")
+    private Integer orderStatus;
+
+    @ApiModelProperty(value = "创建时间")
+    private LocalDateTime createTime;
+
+    @ApiModelProperty(value = "更新时间")
+    private LocalDateTime updateTime;
 
     @Override
     protected Serializable pkVal() {

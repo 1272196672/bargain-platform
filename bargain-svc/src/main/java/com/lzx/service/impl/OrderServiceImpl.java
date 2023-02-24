@@ -6,6 +6,7 @@ import com.lzx.entity.Order;
 import com.lzx.enums.OrderStatus;
 import com.lzx.mapper.OrderMapper;
 import com.lzx.service.OrderService;
+import com.lzx.util.OrderNoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("order_num", orderNo);
         Order order = orderMapper.selectOne(queryWrapper);
-        return order.getOrderPayStatus();
+        return order.getOrderStatus();
     }
 
     @Override
@@ -45,7 +46,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         queryWrapper.eq("order_num", orderNo);
 
         Order order = new Order();
-        order.setOrderPayStatus(orderStatus.getType());
+        order.setOrderStatus(orderStatus.getType());
 
         orderMapper.update(order, queryWrapper);
     }
@@ -56,8 +57,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         Instant instant = Instant.now().minus(Duration.ofMinutes(minute));
 
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("order_pay_status", OrderStatus.NOTPAY.getType())
-                .le("order_create_time", instant);
+        queryWrapper.eq("order_status", OrderStatus.NOTPAY.getType())
+                .le("create_time", instant);
 
         return orderMapper.selectList(queryWrapper);
     }
@@ -66,8 +67,42 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     public int getNeedPayMoneyByOrderNo(String orderNo) {
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("order_num", orderNo);
-        BigDecimal money = orderMapper.selectOne(queryWrapper).getOrderRealMoney();
+        BigDecimal money = orderMapper.selectOne(queryWrapper).getRealMoney();
         return money.multiply(new BigDecimal(100)).intValue();
     }
 
+    @Override
+    public String getAndCreateOrderNo(String orderNum) {
+        Order order = createOrderByOrderNum(orderNum);
+        return order.getOrderNum();
+    }
+
+    @Override
+    public List<String> getNoPayOrderNosByOrderNum(String orderNum) {
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("order_num", orderNum)
+                .eq("order_status", 0);
+        ArrayList<String> orderNoLists = new ArrayList<>();
+        for (Order order : orderMapper.selectList(queryWrapper)) {
+            orderNoLists.add(order.getOrderNum());
+        }
+        return orderNoLists;
+    }
+
+    /**
+     * 创建订单映射
+     *
+     * @param orderNum 原始订单编号
+     * @return {@link Order }
+     * @author 林子翔
+     * @since 2022/10/09
+     */
+    public Order createOrderByOrderNum(String orderNum) {
+        Order order = new Order();
+        order.setOrderNum(orderNum);
+        order.setOrderNum(OrderNoUtils.getOrderNo());
+        order.setOrderStatus(OrderStatus.NOTPAY.getType());
+        orderMapper.insert(order);
+        return order;
+    }
 }

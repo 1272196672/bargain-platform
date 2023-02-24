@@ -5,12 +5,10 @@ import com.lzx.entity.Order;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * <p>
- * 共享停车订单表 Mapper 接口
- * </p>
+ * 订单映射器
  *
- * @author LiJunXiao
- * @since 2022-03-08
+ * @author Bobby.zx.lin
+ * @date 2023/02/24
  */
 @Mapper
 public interface OrderMapper extends BaseMapper<Order> {

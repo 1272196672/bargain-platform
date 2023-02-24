@@ -47,4 +47,25 @@ public interface OrderService extends IService<Order> {
     List<Order> getNoPayOrderByDuration(int minute);
 
     int getNeedPayMoneyByOrderNo(String orderNo);
+
+
+    /**
+     * 创建支付订单映射，获取订单编号映射
+     *
+     * @param orderNum 原始订单编号
+     * @return {@link String }
+     * @author 林子翔
+     * @since 2022/10/09
+     */
+    String getAndCreateOrderNo(String orderNum);
+
+    /**
+     * 获取未支付的订单映射
+     *
+     * @param orderNum orderNum
+     * @return {@link String }
+     * @author 林子翔
+     * @since 2022/10/09
+     */
+    List<String> getNoPayOrderNosByOrderNum(String orderNum);
 }

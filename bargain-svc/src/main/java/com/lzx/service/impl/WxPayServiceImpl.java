@@ -40,26 +40,23 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 @Slf4j
 public class WxPayServiceImpl implements WxPayService {
-    @Autowired
+    @Resource
     private WxPayConfig wxPayConfig;
 
-    @Autowired
+    @Resource
     private CloseableHttpClient wxPayClient;
 
-    @Autowired
+    @Resource
     private PaymentInfoService paymentInfoService;
 
-    @Autowired
+    @Resource
     private RefundInfoService refundInfoService;
 
-    @Autowired
+    @Resource
     private OrderService orderService;
 
     @Resource
     private OrderMapper orderMapper;
-
-    @Autowired
-    private PayOrderService payOrderService;
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -75,7 +72,7 @@ public class WxPayServiceImpl implements WxPayService {
     @Override
     public HashMap<String, Object> nativePay(String orderNum) throws Exception {
         log.info("创建订单映射，获取订单映射num");
-        String orderNo = payOrderService.getAndCreateOrderNo(orderNum);
+        String orderNo = orderService.getAndCreateOrderNo(orderNum);
 
         log.info("查询订单消息");
 //        查询订单金额(分)
@@ -166,8 +163,6 @@ public class WxPayServiceImpl implements WxPayService {
                 //        订单更新
                 orderService.updateStatusByOrderNo(orderNum, OrderStatus.SUCCESS);
                 System.out.println("订单详情：" + orderMapper.selectOne(new QueryWrapper<Order>().eq("order_num", orderNum)));
-                //        支付订单映射更新
-                payOrderService.updateStatusByOrderNo(orderNum, OrderStatus.SUCCESS);
                 //        记录支付日志
                 paymentInfoService.createPaymentInfo(plainTextMap);
             } finally {
@@ -187,56 +182,48 @@ public class WxPayServiceImpl implements WxPayService {
     @Override
     public void cancelOrder(String orderNum) throws Exception {
 //        获取orderNum的所有未支付订单编号
-        List<String> orderNos = payOrderService.getNoPayOrderNosByOrderNum(orderNum);
+        List<String> orderNos = orderService.getNoPayOrderNosByOrderNum(orderNum);
         for (String orderNo : orderNos) {
             //        调用微信支付关单接口
             closeOrder(orderNo);
 //        更新支付订单映射状态,设置为取消订单
-            payOrderService.updateStatusByOrderNo(orderNo, OrderStatus.CANCEL);
-//        更新商户端订单状态
-            orderService.updateStatusByOrderNo(orderNum, OrderStatus.NOTPAY);
+            orderService.updateStatusByOrderNo(orderNo, OrderStatus.CANCEL);
         }
     }
 
     @Override
     public HashMap<String, String> queryOrder(String orderNum) throws Exception {
         log.info("调用wx客户端查单接口");
-        List<String> orderNoLists = payOrderService.getAllOrderNoByOrderNum(orderNum);
-        log.info("{}有{}条记录", orderNum, orderNoLists.size());
 
         HashMap<String, String> bodyAsStringMap = new HashMap<>();
 
-//        为每一条orderNo记录查询一次
-        for (String orderNo : orderNoLists) {
-            String url = wxPayConfig.getDomain()
-                    .concat(String.format(WxApiType.ORDER_QUERY_BY_NO.getType(), orderNo))
-                    .concat("?mchid=")
-                    .concat(wxPayConfig.getMchId());
+        String url = wxPayConfig.getDomain()
+                .concat(String.format(WxApiType.ORDER_QUERY_BY_NO.getType(), orderNum))
+                .concat("?mchid=")
+                .concat(wxPayConfig.getMchId());
 
-            //        将请求参数放到请求对象中
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.setHeader("Accept", "application/json");
-            //        执行请求
-            CloseableHttpResponse response = wxPayClient.execute(httpGet);
+        //        将请求参数放到请求对象中
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Accept", "application/json");
+        //        执行请求
+        CloseableHttpResponse response = wxPayClient.execute(httpGet);
 
-            try {
-                String bodyAsString = EntityUtils.toString(response.getEntity());
-                int statusCode = response.getStatusLine().getStatusCode();
-                //处理成功
-                if (statusCode == 200) {
-                    log.info("success,return body = " + bodyAsString);
-                    //处理成功，无返回Body
-                } else if (statusCode == 204) {
-                    log.info("success");
-                } else {
-                    log.error("failed,resp code = " + statusCode + ",return body = " + bodyAsString);
-                    throw new IOException("request failed");
-                }
-
-                bodyAsStringMap.put(orderNo, bodyAsString);
-            } finally {
-                response.close();
+        try {
+            String bodyAsString = EntityUtils.toString(response.getEntity());
+            int statusCode = response.getStatusLine().getStatusCode();
+            //处理成功
+            if (statusCode == 200) {
+                log.info("success,return body = " + bodyAsString);
+                //处理成功，无返回Body
+            } else if (statusCode == 204) {
+                log.info("success");
+            } else {
+                log.error("failed,resp code = " + statusCode + ",return body = " + bodyAsString);
+                throw new IOException("request failed");
             }
+            bodyAsStringMap.put(orderNum, bodyAsString);
+        } finally {
+            response.close();
         }
         return bodyAsStringMap;
     }
@@ -245,43 +232,32 @@ public class WxPayServiceImpl implements WxPayService {
     @Transactional(rollbackFor = Exception.class)
     public void checkPayOrderStatus(String orderNum) throws Exception {
         log.info("根据订单号{}核实订单状态", orderNum);
-//        获取所有orderNum未支付的订单
-        List<String> orderNos = payOrderService.getNoPayOrderNosByOrderNum(orderNum);
-        for (String orderNo : orderNos) {
-            //        调用wx支付查单接口
-            String bodyAsString = this.queryOrder(orderNo).get(orderNo);
+        //        调用wx支付查单接口
+        String bodyAsString = this.queryOrder(orderNum).get(orderNum);
 
-            HashMap bodyMap = new Gson().fromJson(bodyAsString, HashMap.class);
+        HashMap bodyMap = new Gson().fromJson(bodyAsString, HashMap.class);
 
 //        获取wx支付端订单状态
-            Object tradeState = bodyMap.get("trade_state");
+        Object tradeState = bodyMap.get("trade_state");
 //        订单已支付
-            if (WxTradeState.SUCCESS.getType().equals(tradeState)) {
-                log.info("核实订单{}已支付", orderNo);
+        if (WxTradeState.SUCCESS.getType().equals(tradeState)) {
+            log.info("核实订单{}已支付", orderNum);
 
 //            更新本地订单状态
-                orderService.updateStatusByOrderNo(orderNum, OrderStatus.SUCCESS);
-
-//            更新本地支付订单映射状态
-                payOrderService.updateStatusByOrderNo(orderNo, OrderStatus.SUCCESS);
+            orderService.updateStatusByOrderNo(orderNum, OrderStatus.SUCCESS);
 
 //            记录支付日志
-                paymentInfoService.createPaymentInfo(bodyMap);
+            paymentInfoService.createPaymentInfo(bodyMap);
 //            订单未支付
-            } else if (WxTradeState.NOTPAY.getType().equals(tradeState)) {
-                log.warn("核实订单{}未支付", orderNum);
+        } else if (WxTradeState.NOTPAY.getType().equals(tradeState)) {
+            log.warn("核实订单{}未支付", orderNum);
 
 //            调用wx端关单接口
-                this.closeOrder(orderNo);
+            this.closeOrder(orderNum);
 
 //            更新本地订单状态
-                orderService.updateStatusByOrderNo(orderNum, OrderStatus.CLOSED);
-
-//            更新本地支付订单映射状态
-                payOrderService.updateStatusByOrderNo(orderNo, OrderStatus.CLOSED);
-            }
+            orderService.updateStatusByOrderNo(orderNum, OrderStatus.CLOSED);
         }
-
     }
 
     @Override
@@ -289,13 +265,10 @@ public class WxPayServiceImpl implements WxPayService {
     public void refund(String orderNum, String reason) throws IOException {
         log.info("创建退款单记录");
 
-//        获取映射订单编号
-        String orderNo = payOrderService.getPayOrderNoByOrderNum(orderNum);
-
-        int money = paymentInfoService.getPayedMoney(orderNo);
+        int money = paymentInfoService.getPayedMoney(orderNum);
 
         //根据订单编号创建退款单
-        RefundInfo refundInfo = refundInfoService.createRefundByOrderNo(orderNo, reason);
+        RefundInfo refundInfo = refundInfoService.createRefundByOrderNo(orderNum, reason);
 
 //        调用wx退款api
         log.info("调用wx退款api");
@@ -305,7 +278,7 @@ public class WxPayServiceImpl implements WxPayService {
         // 构造请求body参数
         Gson gson = new Gson();
         HashMap<String, Object> paramsMap = new HashMap();
-        paramsMap.put("out_trade_no", orderNo);
+        paramsMap.put("out_trade_no", orderNum);
         paramsMap.put("out_refund_no", refundInfo.getRefundNo());
         paramsMap.put("reason", reason);
         paramsMap.put("notify_url", wxPayConfig.getNotifyDomain().concat(WxNotifyType.REFUND_NOTIFY.getType()));
@@ -340,9 +313,6 @@ public class WxPayServiceImpl implements WxPayService {
 
             //更新订单状态
             orderService.updateStatusByOrderNo(orderNum, OrderStatus.NOTPAY);
-
-            //更新支付订单映射状态
-            payOrderService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_PROCESSING);
 
             //更新退款单
             refundInfoService.updateRefund(bodyAsString);
@@ -398,15 +368,10 @@ public class WxPayServiceImpl implements WxPayService {
         HashMap plainTextMap = gson.fromJson(plainText, HashMap.class);
         String orderNo = (String) plainTextMap.get("out_trade_no");
 
-        String orderNum = payOrderService.getOrderNum(orderNo);
-
         if (lock.tryLock()) {
             try {
                 //更新订单状态
-                orderService.updateStatusByOrderNo(orderNum, OrderStatus.NOTPAY);
-
-                //更新支付订单映射状态
-                payOrderService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
+                orderService.updateStatusByOrderNo(orderNo, OrderStatus.REFUND_SUCCESS);
 
                 //更新退款单
                 refundInfoService.updateRefund(plainText);
